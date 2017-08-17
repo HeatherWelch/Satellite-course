@@ -8,42 +8,22 @@ setwd('./')
 ###### INSTALL PACKAGES  #### 
 
 ## function to install packages needed
-is.installed <- function(x){
-    is.element(x, installed.packages()[,1])
-} 
-
-if (!is.installed('ncdf4')){
-	print('Installing missing package')
-    install.packages('ncdf4')
-}
-if (!is.installed('RCurl')){
-	print('Installing missing package')
-    install.packages('RCurl')
-}
-if (!is.installed('raster')){
-	print('Installing missing package')
-    install.packages('raster')
-}
-if (!is.installed('colorRamps')){
-	print('Installing missing package')
-    install.packages('colorRamps')
-}
-if (!is.installed('maps')){
-	print('Installing missing package')
-    install.packages('maps')
-}
-if (!is.installed('mapdata')){
-	print('Installing missing package')
-    install.packages('mapdata')
+pkgTest <- function(x)
+{
+  if (!require(x,character.only = TRUE))
+  {
+    install.packages(x,dep=TRUE)
+    if(!require(x,character.only = TRUE)) stop("Package not found")
+  }
 }
 
 ### LOAD LIBRARIES
-library(ncdf4)
-library(RCurl)
-library(raster)
-library(colorRamps)
-library(maps)
-library(mapdata)
+pkgTest("ncdf4")
+pkgTest("RCurl")
+pkgTest("raster")
+pkgTest("colorRamps")
+pkgTest("maps")
+pkgTest("mapdata")
 
 
 ###### AUTOMATIC DATA DOWNLOAD FROM ERDDAP
@@ -80,7 +60,7 @@ our.url <- paste('https://coastwatch.pfeg.noaa.gov/erddap/griddap/jplG1SST.nc?SS
 
 ## SET UP LOCAL NETCDF FILE AND DOWNLOAD DATA INTO IT
 f <- CFILE(paste('jplG1SST_',startdate,'.nc',sep=''),mode="wb")
-curlPerform(url=our.url,writedata=f@ref) ## this may take a couple of minutes - the command line cursor will hang
+curlPerform(url=our.url,writedata=f@ref,noprogress=FALSE) ## this may take a couple of minutes - the command line cursor will hang
 close(f)  ## important not to forget this step
 
 
@@ -103,7 +83,7 @@ while (i < length(dates)){
 	url<-paste('https://coastwatch.pfeg.noaa.gov/erddap/griddap/jplG1SST.nc?SST[(',startdate,'T00:00:00Z):1:(',enddate,'T00:00:00Z)][(',min.lat,'):1:(',max.lat,')][(',min.lon,'):1:(',max.lon,')]',sep='')
 	print(paste('Starting download for',startdate,'to',enddate))
 	f = CFILE(filenm,mode="wb")
-	curlPerform(url=url,writedata=f@ref) 
+	curlPerform(url=url,writedata=f@ref,noprogress=FALSE) 
 	close(f)
 	print(paste('Download for',startdate,'to',enddate,'finished'))
 	### in case our server query didn't work, we can check, wait a couple of seconds and restart
